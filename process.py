@@ -9,7 +9,9 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-
+from PyQt5.QtWidgets import QFileDialog
+from PyQt5.QtGui import QImage
+import cv2, imutils
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -71,6 +73,18 @@ class Ui_MainWindow(object):
         self.RES_BUTTON.clicked.connect(self.RES.clear) # type: ignore
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
+        # code
+        self.filename = None #获取图片路径
+
+    def loadImage(self):
+        """ This function will load the user selected image
+            and set it to label using the setPhoto function
+        """
+        self.filename = QFileDialog.getOpenFileName(filter="Image (*.*)")[0]
+        self.image = cv2.imread(self.filename)
+        self.setPhoto(self.image)
+
+    ###################################################
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
