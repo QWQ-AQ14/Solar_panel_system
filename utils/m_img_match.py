@@ -2,7 +2,9 @@ import cv2
 from m_get_xmp_info import get_xmp_info
 import numpy as np
 import math as m
-
+import random
+from time import *
+import m_QPSO_ssim
 # 红外与可见光的传感器尺寸
 IR_SENSOR_WIDTH = 10.88
 IR_SENSOR_HEIGHT = 8.7
@@ -92,6 +94,7 @@ def undistort(img,DU,F, num):
     # 像素为单位的主点坐标,即图像物理光心在图像像素坐标系中的坐标
     u0 = W / 2
     v0 = H/ 2
+    # 相机内参矩阵
     K = np.array(([fu, 0, u0],
                   [0, fv, v0],
                   [0, 0, 1]))
@@ -102,8 +105,7 @@ def undistort(img,DU,F, num):
     if img is None:
         return None
     dst = cv2.undistort(img,K,D)
-    # Remap the original image to a new image
-    # return cv2.remap(img, mapx, mapy, cv2.INTER_LINEAR)
+
     return dst
 #############################桶型校正###################################
 
@@ -129,5 +131,40 @@ def image_matching(irimg_path,visimg_path):
     ir_img = undistort(ir_img, d_ir, ir_xmp['FocalLength'], 1)
     vis_img = undistort(vis_img, d_vis, vis_xmp['FocalLength'], 2)
 
-
+    #校正后图像灰度化
+    ir_img_gray = cv2.cvtColor(ir_img, cv2.COLOR_BGR2GRAY)
+    vis_img_gray = cv2.cvtColor(vis_img, cv2.COLOR_BGR2GRAY)
+    # -------------------------------------优化QPSO匹配-----------------------------------------
+    # 初始值
+    scale = ir_xmp['FocalLength'] * d_vis / vis_xmp['FocalLength'] * d_ir
+    scale_x, scale_y = scale,scale
+    a, b, tx, ty = 0, 0, 0, 0
+    pos = [scale_x, a, tx, b, scale_y, ty]
+    scale_range = 0.2
+    offsetab_range = 0.1
+    offset_range = 2
+    pmax = [scale_x, a + offsetab_range, tx + offset_range, b + offsetab_range, scale_y, ty + offset_range]
+    pmin = [scale_x - scale_range, a - offsetab_range, tx - offset_range, b - offsetab_range, scale_y - scale_range,
+            ty - offset_range]
+    pos = np.zeros((50, 6), dtype=np.float32)
+    N = 50
+    for i in range(6):
+        for j in range(N):
+            a = random.random()
+            if (i == 0):
+                pos[j, i] = pmin[i] + a * (pmax[i] - pmin[i])
+            else:
+                # pos[j, i] = random.randint(pmin[i], pmax[i])  # 整型
+                pos[j, i] = random.uniform(pmin[i], pmax[i])  # 浮点型
+    # 匹配优化
+    maxinterations = 100
+    yleft, yright, xleft, xright = 500, 2500, 1000, 3000
+    print('[5]通过QPSO进行图像尺度参数优化...')
+    begin_time = time()
+    pa, mi = m_QPSO_ssim.QPSO(ir_img_gray, vis_img_gray, pos, maxinterations, pmax, pmin, yleft, yright, xleft, xright)
+    end_time = time()
+    run_time = end_time - begin_time
+    print('QPSO算法运行时间：', run_time)  # 该循环程序运行时间： 1.4201874732
+    fine_MATCH = m_QPSO_ssim.get_reg_img(ir_img_gray, vis_img_gray, pa)
+    return pa,fine_MATCH
 #############################图像匹配###################################
