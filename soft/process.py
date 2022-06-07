@@ -67,22 +67,90 @@ class Ui_MainWindow(object):
         MainWindow.setCentralWidget(self.centralwidget)
 
         self.retranslateUi(MainWindow)
-        self.IR_BUTTON.clicked.connect(self.IR.clear) # type: ignore
-        self.VIS_BUTTON.clicked.connect(self.VIS.clear) # type: ignore
-        self.FUSION_BUTTON.clicked.connect(self.RES.clear) # type: ignore
-        self.RES_BUTTON.clicked.connect(self.RES.clear) # type: ignore
+        self.IR_BUTTON.clicked.connect(self.loadImageIR) # type: ignore
+        self.VIS_BUTTON.clicked.connect(self.loadImageVIS) # type: ignore
+        self.FUSION_BUTTON.clicked.connect(self.fusion) # type: ignore
+        self.RES_BUTTON.clicked.connect(self.savePhoto) # type: ignore
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
         # code
         self.filename = None #获取图片路径
-
-    def loadImage(self):
+        self.tmp = None
+    def loadImageIR(self):
         """ This function will load the user selected image
             and set it to label using the setPhoto function
         """
         self.filename = QFileDialog.getOpenFileName(filter="Image (*.*)")[0]
         self.image = cv2.imread(self.filename)
-        self.setPhoto(self.image)
+        self.setPhoto_IR(self.image)
+
+    def loadImageVIS(self):
+        """ This function will load the user selected image
+            and set it to label using the setPhoto function
+        """
+        self.filename = QFileDialog.getOpenFileName(filter="Image (*.*)")[0]
+        self.image = cv2.imread(self.filename)
+        self.setPhoto_VIS(self.image)
+
+    def setPhoto_IR(self, image):
+        """ This function will take image input and resize it
+            only for display purpose and convert it to QImage
+            to set at the label.
+        """
+        self.IR_img = image
+        image = imutils.resize(image, width=640)
+        frame = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        image = QImage(frame, frame.shape[1], frame.shape[0], frame.strides[0], QImage.Format_RGB888)
+        self.IR.setPixmap(QtGui.QPixmap.fromImage(image))
+
+    def setPhoto_VIS(self, image):
+        """ This function will take image input and resize it
+            only for display purpose and convert it to QImage
+            to set at the label.
+        """
+        self.VIS_img = image
+        image = imutils.resize(image, width=640)
+        frame = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        image = QImage(frame, frame.shape[1], frame.shape[0], frame.strides[0], QImage.Format_RGB888)
+        self.VIS.setPixmap(QtGui.QPixmap.fromImage(image))
+
+    def setPhoto_RES(self, image):
+        """ This function will take image input and resize it
+            only for display purpose and convert it to QImage
+            to set at the label.
+        """
+
+        image = imutils.resize(image, width=640)
+        frame = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        image = QImage(frame, frame.shape[1], frame.shape[0], frame.strides[0], QImage.Format_RGB888)
+        self.RES.setPixmap(QtGui.QPixmap.fromImage(image))
+
+    def fusion(self):
+        self.fusion_img = cv2.addWeighted(self.IR_img,0.5,self.VIS_img,0.5,0)
+        self.setPhoto_RES(self.fusion_img)
+
+    def savePhoto(self):
+        """ This function will save the image"""
+        # here provide the output file name
+        # lets say we want to save the output as a time stamp
+        # uncomment the two lines below
+
+        # import time
+        # filename = 'Snapshot '+str(time.strftime("%Y-%b-%d at %H.%M.%S %p"))+'.png'
+
+        # Or we can give any name such as output.jpg or output.png as well
+        # filename = 'Snapshot.png'
+
+        # Or a much better option is to let user decide the location and the extension
+        # using a file dialog.
+
+        filename = QFileDialog.getSaveFileName(filter="JPG(*.jpg);;PNG(*.png);;TIFF(*.tiff);;BMP(*.bmp)")[0]
+
+        cv2.imwrite(filename, self.fusion_img)
+        print('Image saved as:', self.filename)
+
+
+
 
     ###################################################
     def retranslateUi(self, MainWindow):
