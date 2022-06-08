@@ -1,10 +1,12 @@
 import cv2
-from m_get_xmp_info import get_xmp_info
+import matplotlib.image as mpimg
 import numpy as np
 import math as m
 import random
 from time import *
-import m_QPSO_ssim
+
+from utils.m_get_xmp_info import get_xmp_info
+import utils.m_QPSO_ssim as m_QPSO_ssim
 # 红外与可见光的传感器尺寸
 IR_SENSOR_WIDTH = 10.88
 IR_SENSOR_HEIGHT = 8.7
@@ -112,20 +114,20 @@ def undistort(img,DU,F, num):
 #############################图像匹配###################################
 def image_matching(irimg_path,visimg_path):
     #读取图像
-    ir_img = cv2.imread(irimg_path)
-    vis_img = cv2.imread(visimg_path)
-
+    # ir_img = cv2.imread(irimg_path)
+    # vis_img = cv2.imread(visimg_path)
+    ir_img = mpimg.imread(irimg_path)
+    vis_img = mpimg.imread(visimg_path)
     # 获取红外与可见光的XMP信息
     ir_xmp = get_xmp_info(irimg_path)
     vis_xmp = get_xmp_info(visimg_path)
 
-    # 计算图像单位像素的实际尺寸大小
-    d_ir = ir_xmp['ImageWidth'] / IR_SENSOR_WIDTH
-    d_vis = vis_xmp['ImageWidth'] / VIS_SENSOR_WIDTH
-
+    # 计算图像单位像素的实际尺寸大小  d_ir = 0.017  d_vis = 0.001824457593688363
+    d_ir =  IR_SENSOR_WIDTH / ir_xmp['ImageWidth']
+    d_vis = VIS_SENSOR_WIDTH / vis_xmp['ImageWidth']
     #几何校正
-    ir_img = Geo_Correcition(ir_img,d_ir,ir_xmp['FocalLength'],ir_xmp['Flight-Yaw'])
-    vis_img = Geo_Correcition(vis_img,d_vis,vis_xmp['FocalLength'],vis_xmp['Flight-Yaw'])
+    # ir_img = Geo_Correcition(ir_img,d_ir,ir_xmp['FocalLength'],ir_xmp['Flight-Yaw'])
+    # vis_img = Geo_Correcition(vis_img,d_vis,vis_xmp['FocalLength'],vis_xmp['Flight-Yaw'])
 
     #桶型校正
     ir_img = undistort(ir_img, d_ir, ir_xmp['FocalLength'], 1)
