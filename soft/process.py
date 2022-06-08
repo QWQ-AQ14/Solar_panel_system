@@ -9,14 +9,13 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import QFileDialog
-from PyQt5.QtGui import QImage
-import cv2, imutils
+
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(812, 389)
+        MainWindow.resize(1200, 800)
+        MainWindow.setMaximumSize(QtCore.QSize(2000, 2000))
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.centralwidget)
@@ -27,15 +26,35 @@ class Ui_MainWindow(object):
         self.funsion_top.setObjectName("funsion_top")
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout(self.funsion_top)
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
-        self.IR_BUTTON = QtWidgets.QPushButton(self.funsion_top)
+        self.file_button = QtWidgets.QFrame(self.funsion_top)
+        self.file_button.setFrameShape(QtWidgets.QFrame.StyledPanel)
+        self.file_button.setFrameShadow(QtWidgets.QFrame.Raised)
+        self.file_button.setObjectName("file_button")
+        self.verticalLayout_2 = QtWidgets.QVBoxLayout(self.file_button)
+        self.verticalLayout_2.setObjectName("verticalLayout_2")
+        self.IR_BUTTON = QtWidgets.QPushButton(self.file_button)
         self.IR_BUTTON.setObjectName("IR_BUTTON")
-        self.horizontalLayout_2.addWidget(self.IR_BUTTON)
-        self.VIS_BUTTON = QtWidgets.QPushButton(self.funsion_top)
+        self.verticalLayout_2.addWidget(self.IR_BUTTON)
+        self.VIS_BUTTON = QtWidgets.QPushButton(self.file_button)
         self.VIS_BUTTON.setObjectName("VIS_BUTTON")
-        self.horizontalLayout_2.addWidget(self.VIS_BUTTON)
-        self.FUSION_BUTTON = QtWidgets.QPushButton(self.funsion_top)
+        self.verticalLayout_2.addWidget(self.VIS_BUTTON)
+        self.horizontalLayout_2.addWidget(self.file_button)
+        self.change_img = QtWidgets.QFrame(self.funsion_top)
+        self.change_img.setFrameShape(QtWidgets.QFrame.StyledPanel)
+        self.change_img.setFrameShadow(QtWidgets.QFrame.Raised)
+        self.change_img.setObjectName("change_img")
+        self.verticalLayout_3 = QtWidgets.QVBoxLayout(self.change_img)
+        self.verticalLayout_3.setObjectName("verticalLayout_3")
+        self.GEO_BUTTON = QtWidgets.QPushButton(self.change_img)
+        self.GEO_BUTTON.setObjectName("GEO_BUTTON")
+        self.verticalLayout_3.addWidget(self.GEO_BUTTON)
+        self.BAR_BUTTON = QtWidgets.QPushButton(self.change_img)
+        self.BAR_BUTTON.setObjectName("BAR_BUTTON")
+        self.verticalLayout_3.addWidget(self.BAR_BUTTON)
+        self.FUSION_BUTTON = QtWidgets.QPushButton(self.change_img)
         self.FUSION_BUTTON.setObjectName("FUSION_BUTTON")
-        self.horizontalLayout_2.addWidget(self.FUSION_BUTTON)
+        self.verticalLayout_3.addWidget(self.FUSION_BUTTON)
+        self.horizontalLayout_2.addWidget(self.change_img)
         self.RES_BUTTON = QtWidgets.QPushButton(self.funsion_top)
         self.RES_BUTTON.setObjectName("RES_BUTTON")
         self.horizontalLayout_2.addWidget(self.RES_BUTTON)
@@ -67,106 +86,18 @@ class Ui_MainWindow(object):
         MainWindow.setCentralWidget(self.centralwidget)
 
         self.retranslateUi(MainWindow)
-        self.IR_BUTTON.clicked.connect(self.loadImageIR) # type: ignore
-        self.VIS_BUTTON.clicked.connect(self.loadImageVIS) # type: ignore
-        self.FUSION_BUTTON.clicked.connect(self.fusion) # type: ignore
-        self.RES_BUTTON.clicked.connect(self.savePhoto) # type: ignore
+        self.IR_BUTTON.clicked.connect(self.IR.clear) # type: ignore
+        self.VIS_BUTTON.clicked.connect(self.VIS.clear) # type: ignore
+        self.FUSION_BUTTON.clicked.connect(self.RES.clear) # type: ignore
+        self.RES_BUTTON.clicked.connect(self.RES.clear) # type: ignore
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
-        # code
-        self.filename = None #获取图片路径
-        self.tmp = None
-    def loadImageIR(self):
-        """ This function will load the user selected image
-            and set it to label using the setPhoto function
-        """
-        self.filename = QFileDialog.getOpenFileName(filter="Image (*.*)")[0]
-        self.image = cv2.imread(self.filename)
-        self.setPhoto_IR(self.image)
-
-    def loadImageVIS(self):
-        """ This function will load the user selected image
-            and set it to label using the setPhoto function
-        """
-        self.filename = QFileDialog.getOpenFileName(filter="Image (*.*)")[0]
-        self.image = cv2.imread(self.filename)
-        self.setPhoto_VIS(self.image)
-
-    def setPhoto_IR(self, image):
-        """ This function will take image input and resize it
-            only for display purpose and convert it to QImage
-            to set at the label.
-        """
-        self.IR_img = image
-        image = imutils.resize(image, width=640)
-        frame = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        image = QImage(frame, frame.shape[1], frame.shape[0], frame.strides[0], QImage.Format_RGB888)
-        self.IR.setPixmap(QtGui.QPixmap.fromImage(image))
-
-    def setPhoto_VIS(self, image):
-        """ This function will take image input and resize it
-            only for display purpose and convert it to QImage
-            to set at the label.
-        """
-        self.VIS_img = image
-        image = imutils.resize(image, width=640)
-        frame = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        image = QImage(frame, frame.shape[1], frame.shape[0], frame.strides[0], QImage.Format_RGB888)
-        self.VIS.setPixmap(QtGui.QPixmap.fromImage(image))
-
-    def setPhoto_RES(self, image):
-        """ This function will take image input and resize it
-            only for display purpose and convert it to QImage
-            to set at the label.
-        """
-
-        image = imutils.resize(image, width=640)
-        frame = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        image = QImage(frame, frame.shape[1], frame.shape[0], frame.strides[0], QImage.Format_RGB888)
-        self.RES.setPixmap(QtGui.QPixmap.fromImage(image))
-
-    def fusion(self):
-        self.fusion_img = cv2.addWeighted(self.IR_img,0.5,self.VIS_img,0.5,0)
-        self.setPhoto_RES(self.fusion_img)
-
-    def savePhoto(self):
-        """ This function will save the image"""
-        # here provide the output file name
-        # lets say we want to save the output as a time stamp
-        # uncomment the two lines below
-
-        # import time
-        # filename = 'Snapshot '+str(time.strftime("%Y-%b-%d at %H.%M.%S %p"))+'.png'
-
-        # Or we can give any name such as output.jpg or output.png as well
-        # filename = 'Snapshot.png'
-
-        # Or a much better option is to let user decide the location and the extension
-        # using a file dialog.
-
-        filename = QFileDialog.getSaveFileName(filter="JPG(*.jpg);;PNG(*.png);;TIFF(*.tiff);;BMP(*.bmp)")[0]
-
-        cv2.imwrite(filename, self.fusion_img)
-        print('Image saved as:', self.filename)
-
-
-
-
-    ###################################################
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.IR_BUTTON.setText(_translate("MainWindow", "输入红外图像"))
         self.VIS_BUTTON.setText(_translate("MainWindow", "输入可见光图像"))
+        self.GEO_BUTTON.setText(_translate("MainWindow", "几何校正"))
+        self.BAR_BUTTON.setText(_translate("MainWindow", "桶型校正"))
         self.FUSION_BUTTON.setText(_translate("MainWindow", "图像融合"))
         self.RES_BUTTON.setText(_translate("MainWindow", "保存结果图"))
-
-
-if __name__ == "__main__":
-    import sys
-    app = QtWidgets.QApplication(sys.argv)
-    MainWindow = QtWidgets.QMainWindow()
-    ui = Ui_MainWindow()
-    ui.setupUi(MainWindow)
-    MainWindow.show()
-    sys.exit(app.exec_())
