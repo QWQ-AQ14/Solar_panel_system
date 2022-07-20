@@ -15,6 +15,8 @@ def viewImage(image):
     cv2.imshow('Display', image)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
+def cv2_imwrite(name,img):
+    cv2.imwrite('../resultimgs/'+name,img)
 def choseImage():
     ftypes = [
         ("JPG", "*.jpg;*.JPG;*.JPEG"),
@@ -27,8 +29,17 @@ def choseImage():
     return image_src
 
 # 测试红外图像变换参数
-def IR_img_changebig(IrImg,VisImg,affmat):
-    H = np.array([[pos[0], pos[1], pos[2]], [pos[3], pos[4], pos[5]], [0, 0, 1]], np.float32)
-    trans_ir = cv2.warpPerspective(IrImg, H, (VisImg.shape[1], VisImg.shape[0]))
+def IR_img_changebig(IrImg,VisImg,pos):
+    affmat = np.array([[pos[0], pos[1], pos[2]], [pos[3], pos[4], pos[5]], [0, 0, 1]], np.float32)
+    trans_ir = cv2.warpPerspective(IrImg, affmat, (VisImg.shape[1], VisImg.shape[0]))
     match_img = cv2.addWeighted(trans_ir, 0.5, VisImg, 0.5, 0)
     return trans_ir, VisImg, match_img
+
+# 展示轮廓
+def drawContours(img,cnts):
+    draw_rect = img.copy()
+    for i, cnt in enumerate(cnts):
+        rect = cv2.minAreaRect(cnt)
+        box = np.int0(cv2.boxPoints(rect))
+        cv2.drawContours(draw_rect, [box], 0, (0, 0, 255), 2)
+    viewImage(draw_rect)
